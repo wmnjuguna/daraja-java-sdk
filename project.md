@@ -45,181 +45,40 @@ The SDK will be built around a central `DarajaClientFactory` which will be respo
 
 ## 3. Development Milestones
 
-### Milestone 1: Foundation & Authentication
+### Milestone 1: Foundation & Authentication (Completed)
 
 **Objective**: Establish the core project structure and implement a robust, automatic authentication mechanism.
 
-**Tasks**:
+### Milestone 2: M-Pesa Express (STK Push) (Completed)
 
-#### Project Setup (build.gradle):
+**Objective**: Implement the full flow for initiating an STK Push payment request.
 
-```gradle
-plugins {
-    id 'java-library'
-}
+### Milestone 3: Customer to Business (C2B) (Completed)
 
-group = 'com.yourdomain' // Change to your group id
-version = '1.0.0'
+**Objective**: Enable registration of C2B callback URLs and provide models for handling C2B payments.
 
-repositories {
-    mavenCentral()
-}
+### Milestone 4: Business to Customer (B2C) (Completed)
 
-dependencies {
-    // OpenFeign for declarative REST clients
-    api 'io.github.openfeign:feign-core:13.1'
-    api 'io.github.openfeign:feign-jackson:13.1'
+**Objective**: Implement the full flow for initiating B2C payments.
 
-    // Jackson for JSON processing
-    api 'com.fasterxml.jackson.core:jackson-databind:2.15.2'
+### Milestone 5: Business to Business (B2B) (Completed)
 
-    // Logging Facade
-    api 'org.slf4j:slf4j-api:2.0.7'
-}
-```
+**Objective**: Implement the full flow for initiating B2B payments.
 
-#### DarajaEnvironment Enum:
+### Milestone 6: Transaction Status (Completed)
 
-```javapublic enum DarajaEnvironment {
-    SANDBOX("https://sandbox.safaricom.co.ke"),
-    PRODUCTION("https://api.safaricom.co.ke");
+**Objective**: Implement the API for querying the status of a transaction.
 
-    private final String baseUrl;
+### Milestone 7: Account Balance (Completed)
 
-    DarajaEnvironment(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
+**Objective**: Implement the API for querying a shortcode's account balance.
 
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-}
-```
+### Milestone 8: Reversal (Completed)
 
-#### Authentication DTO:
+**Objective**: Implement the API for reversing a transaction.
 
-```javaimport com.fasterxml.jackson.annotation.JsonProperty;
-
-public record AuthResponse(
-    @JsonProperty("access_token") String accessToken,
-    @JsonProperty("expires_in") String expiresIn
-) {}
-```
-
-#### DarajaAuthClient Interface:
-
-```javaimport feign.Headers;
-import feign.Param;
-import feign.RequestLine;
-
-interface DarajaAuthClient {
-    @RequestLine("GET /oauth/v1/generate?grant_type=client_credentials")
-    @Headers("Authorization: {authHeader}")
-    AuthResponse getAccessToken(@Param("authHeader") String authHeader);
-}
-```
-
-#### DarajaAuthInterceptor Implementation:
-
-```javaimport feign.RequestInterceptor;
-import feign.RequestTemplate;
-import java.util.Base64;
-import java.util.Objects;
-
-public class DarajaAuthInterceptor implements RequestInterceptor {
-    // Implementation details will include logic to cache and refresh token
-    @Override
-    public void apply(RequestTemplate template) {
-        // Logic goes here
-    }
-}
-```
-
-### Milestone 2: M-Pesa Express (STK Push)**Objective**: Implement the full flow for initiating an STK Push payment request.
-
-**Tasks**:
-
-#### DTOs for STK Push (as Java Records):
-- `StkPushRequest.java`
-- `StkPushResponse.java`
-- `StkPushCallback.java` (with all nested records)
-
-#### Update DarajaApiClient Interface:
-
-```javapublic interface DarajaApiClient {
-    @RequestLine("POST /mpesa/stkpush/v1/processrequest")
-    @Headers("Content-Type: application/json")
-    StkPushResponse initiateStkPush(StkPushRequest request);
-}
-```
-
-#### Password Generation Utility:Create a static helper method to generate the Timestamp and Base64 encoded Password (BusinessShortCode + Passkey + Timestamp).
-
-#### Documentation & Developer Responsibility:
-The README must explain that the developer is responsible for creating a public CallBackURL endpoint in their application. The SDK provides the StkPushCallback record to simplify parsing the incoming request from Safaricom.
-
-### Milestone 3: Customer to Business (C2B)**Objective**: Enable registration of C2B callback URLs and provide models for handling C2B payments.
-
-**Tasks**:
-
-#### DTOs for C2B (as Java Records):
-- `C2BRegisterUrlRequest.java`
-- `C2BRegisterUrlResponse.java`
-- `C2BValidationCallback.java`
-- `C2BConfirmationCallback.java`
-
-#### Update DarajaApiClient Interface:
-
-```javapublic interface DarajaApiClient {
-    // ... other methods
-    @RequestLine("POST /mpesa/c2b/v1/registerurl")
-    @Headers("Content-Type: application/json")
-    C2BRegisterUrlResponse registerC2BUrls(C2BRegisterUrlRequest request);
-}
-```
-
-#### Documentation & Developer Responsibility:Clearly state that the host application is responsible for implementing the two required endpoints (ValidationURL and ConfirmationURL). The SDK provides the necessary DTOs to handle these inbound calls.
-
-### Milestone 4: Business to Customer (B2C)**Objective**: Implement the full flow for initiating B2C payments.
-
-**Tasks**:
-
-#### DTOs for B2C (as Java Records):
-- `B2CRequest.java`
-- `B2CResponse.java`
-- `B2CCallback.java`
-
-#### Update DarajaApiClient Interface:
-Add the method for initiating a B2C transaction.
-
-#### Documentation:
-Clarify the roles of the QueueTimeOutURL and ResultURL.
-
-### Milestone 5: Transaction Status**Objective**: Implement the API for querying the status of a transaction.
-
-**Tasks**:
-
-#### DTOs for Transaction Status (as Java Records):
-- `TransactionStatusRequest.java`
-- `TransactionStatusResponse.java`
-- `TransactionStatusCallback.java`
-
-#### Update DarajaApiClient Interface:
-Add the method for querying transaction status.
-
-### Milestone 6: Account Balance**Objective**: Implement the API for querying a shortcode's account balance.
-
-**Tasks**:
-
-#### DTOs for Account Balance (as Java Records):
-- `AccountBalanceRequest.java`
-- `AccountBalanceResponse.java`
-- `AccountBalanceCallback.java`
-
-#### Update DarajaApiClient Interface:
-Add the method for checking account balance.
-
-## 4. Final Packaging and Distribution- **Error Handling**: Implement a custom Feign ErrorDecoder to translate HTTP errors (like 400, 401, 500) into specific, meaningful Java exceptions (e.g., InvalidDarajaRequestException, DarajaAuthenticationException)
+## 4. Final Packaging and Distribution
+- **Error Handling**: Implement a custom Feign ErrorDecoder to translate HTTP errors (like 400, 401, 500) into specific, meaningful Java exceptions (e.g., InvalidDarajaRequestException, DarajaAuthenticationException)
 - **Logging**: Ensure all critical steps (token refresh, API calls, errors) are logged appropriately using SLF4J at different levels (INFO, DEBUG, ERROR)
 - **Build & Deploy**: Configure the build.gradle file to build the JAR and publish it to a repository like Maven Central
 - **Final Documentation**: Create a detailed README.md file with installation instructions and clear usage examples for every feature

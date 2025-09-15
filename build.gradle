@@ -21,11 +21,12 @@ dependencies {
     // OpenFeign for declarative REST clients
     api 'io.github.openfeign:feign-core:13.5'
     api 'io.github.openfeign:feign-jackson:13.5'
+    api 'io.github.openfeign:feign-slf4j:13.5'
 
     // Jackson for JSON processing
-    api 'com.fasterxml.jackson.core:jackson-databind:2.20.0'
-    api 'com.fasterxml.jackson.core:jackson-annotations:2.20.0'
-    api 'com.fasterxml.jackson.core:jackson-core:2.20.0'
+    api 'com.fasterxml.jackson.core:jackson-databind:2.18.2'
+    api 'com.fasterxml.jackson.core:jackson-annotations:2.18.2'
+    api 'com.fasterxml.jackson.core:jackson-core:2.18.2'
 
     // Logging facade
     api 'org.slf4j:slf4j-api:2.0.17'
@@ -42,7 +43,7 @@ dependencies {
 
 java {
     toolchain {
-        languageVersion = JavaLanguageVersion.of(17)
+        languageVersion = JavaLanguageVersion.of(21)
     }
     withSourcesJar()
     withJavadocJar()
@@ -106,7 +107,7 @@ publishing {
                     developer {
                         id = 'wmnjuguna'
                         name = 'Wilfred Njuguna'
-                        email = 'wilfred.njuguna@example.com'
+                        email = 'mwangiwilly395@gmail.com'
                     }
                 }
 
@@ -116,6 +117,91 @@ publishing {
                     url = 'https://github.com/wmnjuguna/daraja-java-sdk/tree/main'
                 }
             }
+        }
+    }
+
+    repositories {
+        maven {
+            name = "OSSRH"
+            def releasesRepoUrl = "https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/"
+            def snapshotsRepoUrl = "https://s01.oss.sonatype.org/content/repositories/snapshots/"
+            url = version.endsWith('SNAPSHOT') ? snapshotsRepoUrl : releasesRepoUrl
+            credentials {
+                username = project.findProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME")
+                password = project.findProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD")
+            }
+        }
+    }
+}
+
+signing {
+    def signingKey = project.findProperty("signingKey") ?: System.getenv("SIGNING_KEY")
+    def signingPassword = project.findProperty("signingPassword") ?: System.getenv("SIGNING_PASSWORD")
+
+    if (signingKey && signingPassword) {
+        useInMemoryPgpKeys(signingKey, signingPassword)
+        sign publishing.publications.maven
+    }
+}
+
+// Additional helpful tasks
+tasks.register('publishSnapshot') {
+    description = 'Publishes a snapshot version to Maven Central'
+    group = 'publishing'
+    dependsOn 'publish'
+    doFirst {
+        if (!version.endsWith('SNAPSHOT')) {
+            throw new GradleException("Version must end with '-SNAPSHOT' for snapshot publishing")
+        }
+    }
+}
+
+tasks.register('publishRelease') {
+    description = 'Publishes a release version to Maven Central'
+    group = 'publishing'
+    dependsOn 'publish'
+    doFirst {
+        if (version.endsWith('SNAPSHOT')) {
+            throw new GradleException("Version cannot end with '-SNAPSHOT' for release publishing")
+        }
+    }
+}
+
+tasks.register('checkPublishingRequirements') {
+    description = 'Checks if all publishing requirements are met'
+    group = 'verification'
+    doLast {
+        def checks = [:]
+
+        // Check credentials
+        def ossrhUsername = project.findProperty("ossrhUsername") ?: System.getenv("OSSRH_USERNAME")
+        def ossrhPassword = project.findProperty("ossrhPassword") ?: System.getenv("OSSRH_PASSWORD")
+        def signingKey = project.findProperty("signingKey") ?: System.getenv("SIGNING_KEY")
+        def signingPassword = project.findProperty("signingPassword") ?: System.getenv("SIGNING_PASSWORD")
+
+        checks["OSSRH Username"] = ossrhUsername ? "✓ Set" : "✗ Missing"
+        checks["OSSRH Password"] = ossrhPassword ? "✓ Set" : "✗ Missing"
+        checks["Signing Key"] = signingKey ? "✓ Set" : "✗ Missing"
+        checks["Signing Password"] = signingPassword ? "✓ Set" : "✗ Missing"
+
+        // Check version format
+        checks["Version Format"] = version.matches(/^\d+\.\d+\.\d+(-SNAPSHOT)?$/) ? "✓ Valid" : "✗ Invalid"
+
+        // Check required POM fields
+        checks["Group ID"] = group ? "✓ Set" : "✗ Missing"
+        checks["Artifact ID"] = rootProject.name ? "✓ Set" : "✗ Missing"
+
+        println("\n=== Publishing Requirements Check ===")
+        checks.each { key, value ->
+            println("$key: $value")
+        }
+
+        def missing = checks.findAll { it.value.startsWith("✗") }
+        if (missing) {
+            println("\n⚠️  Please fix the missing requirements before publishing.")
+            println("📖 See PUBLISHING.md for detailed setup instructions.")
+        } else {
+            println("\n✅ All requirements met! Ready to publish.")
         }
     }
 }
