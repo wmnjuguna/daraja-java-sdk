@@ -1,0 +1,26 @@
+{
+  "name": "daraja-java-sdk",
+  "version": "1.0.0",
+  "description": "[![Build Status](https://travis-ci.org/your-username/daraja-java-sdk.svg?branch=main)](https://travis-ci.org/your-username/daraja-java-sdk)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wmnjuguna/daraja-java-sdk.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/wmnjuguna/daraja-java-sdk/issues"
+  },
+  "homepage": "https://github.com/wmnjuguna/daraja-java-sdk#readme",
+  "devDependencies": {
+    "@semantic-release/changelog": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^24.2.8"
+  }
+}
