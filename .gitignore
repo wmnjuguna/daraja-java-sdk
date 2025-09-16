@@ -7,3 +7,4 @@ build
 # Ignore Claude-related development files
 /CLAUDE.md
 /TODO.md
+node_modules/
