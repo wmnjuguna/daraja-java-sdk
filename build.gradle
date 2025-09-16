@@ -114,7 +114,7 @@ publishing {
                 scm {
                     connection = 'scm:git:git://github.com/wmnjuguna/daraja-java-sdk.git'
                     developerConnection = 'scm:git:ssh://github.com:wmnjuguna/daraja-java-sdk.git'
-                    url = 'httpshttps://github.com/wmnjuguna/daraja-java-sdk/tree/main'
+                    url = 'https://github.com/wmnjuguna/daraja-java-sdk/tree/main'
                 }
             }
         }
