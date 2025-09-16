@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/wmnjuguna/daraja-java-sdk/compare/v1.0.0...v1.0.1) (2025-09-16)
+
+
+### Bug Fixes
+
+* update release workflow to use npm install instead of npm ci ([a4ab5af](https://github.com/wmnjuguna/daraja-java-sdk/commit/a4ab5af2eb55ac09c3944f2da0eae8951bded2a5))
+
 # 1.0.0 (2025-09-16)
 
 
